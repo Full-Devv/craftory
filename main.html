@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <title>Craftory Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            padding-bottom: 80px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        
+        .header p {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            background: #667eea;
+            color: white;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+            background: #fafafa;
+        }
+        
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .inline-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .rating {
+            display: flex;
+            gap: 15px;
+            padding: 10px 0;
+            justify-content: center;
+        }
+        
+        .rating-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .rating-option input[type="radio"] {
+            width: 35px;
+            height: 35px;
+            margin: 0;
+            cursor: pointer;
+        }
+        
+        .rating-option label {
+            margin-top: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .note {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #555;
+        }
+        
+        .btn-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            display: block;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.2s;
+        }
+        
+        .download-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .success-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1000;
+        }
+        
+        .success-message.show {
+            display: block;
+            animation: popIn 0.3s ease-out;
+        }
+        
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .overlay.show {
+            display: block;
+        }
+        
+        @media (max-width: 480px) {
+            .inline-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .rating {
+                gap: 10px;
+            }
+            
+            .rating-option input[type="radio"] {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 CRAFTORY REPORT</h1>
+            <p>Daily Agent Activity</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <div class="section-title">1️⃣ Agent Details</div>
+                <div class="form-group">
+                    <label>Agent Name</label>
+                    <input type="text" id="agentName" placeholder="Enter your full name">
+                </div>
+                <div class="inline-fields">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="phoneNumber" placeholder="+254 700 000000">
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="reportDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Area / Location</label>
+                    <input type="text" id="areaLocation" placeholder="e.g., Westlands, Nairobi">
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">2️⃣ Today's Activity</div>
+                <div class="inline-fields">
+                    <div class="form-group">
+                        <label>Hours Worked</label>
+                        <input type="number" id="hoursWorked" placeholder="8" min="0" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Businesses Visited</label>
+                        <input type="number" id="businessesVisited" placeholder="15" min="0">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">3️⃣ Results</div>
+                <div class="inline-fields">
+                    <div class="form-group">
+                        <label>New Contacts</label>
+                        <input type="number" id="newContacts" placeholder="10" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Onboarded Businesses</label>
+                        <input type="number" id="onboardedBusinesses" placeholder="3" min="0">
+                    </div>
+                </div>
+                <div class="note">
+                    <strong>Note:</strong> Onboarded = businesses that agreed to join Craftory
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">4️⃣ Feedback</div>
+                <div class="form-group">
+                    <label>Common Questions/Concerns</label>
+                    <textarea id="commonQuestions" placeholder="What questions did people ask?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Reasons for "No"</label>
+                    <textarea id="mainReasons" placeholder="Why did people decline?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Opportunities Noticed</label>
+                    <textarea id="opportunities" placeholder="Events, areas, businesses to target..."></textarea>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">5️⃣ Challenges</div>
+                <div class="form-group">
+                    <label>Challenges Faced Today</label>
+                    <textarea id="challenges" placeholder="What obstacles did you face?"></textarea>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">6️⃣ Support Needed</div>
+                <div class="form-group">
+                    <label>What Do You Need?</label>
+                    <textarea id="supportNeeded" placeholder="Materials, resources, help needed..."></textarea>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">7️⃣ Self-Check</div>
+                <div class="form-group">
+                    <label>Rate Your Effort (1-5)</label>
+                    <div class="rating">
+                        <div class="rating-option">
+                            <input type="radio" id="rating1" name="rating" value="1">
+                            <label for="rating1">1</label>
+                        </div>
+                        <div class="rating-option">
+                            <input type="radio" id="rating2" name="rating" value="2">
+                            <label for="rating2">2</label>
+                        </div>
+                        <div class="rating-option">
+                            <input type="radio" id="rating3" name="rating" value="3">
+                            <label for="rating3">3</label>
+                        </div>
+                        <div class="rating-option">
+                            <input type="radio" id="rating4" name="rating" value="4">
+                            <label for="rating4">4</label>
+                        </div>
+                        <div class="rating-option">
+                            <input type="radio" id="rating5" name="rating" value="5">
+                            <label for="rating5">5</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Proud Of Today</label>
+                    <textarea id="proud" placeholder="What are you proud of?" style="min-height: 70px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Do Differently Tomorrow</label>
+                    <textarea id="differently" placeholder="What will you improve?" style="min-height: 70px;"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="btn-container">
+        <button class="download-btn" onclick="downloadPDF()">📥 Generate PDF Report</button>
+    </div>
+    
+    <div class="overlay" id="overlay"></div>
+    <div class="success-message" id="successMessage">
+        <div style="font-size: 48px;">✅</div>
+        <h2 style="margin: 15px 0;">Success!</h2>
+        <p style="color: #666;">Your report has been downloaded</p>
+    </div>
+    
+    <script>
+        // Set today's date as default
+        document.getElementById('reportDate').valueAsDate = new Date();
+        
+        function showSuccess() {
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('successMessage').classList.add('show');
+            
+            setTimeout(() => {
+                document.getElementById('overlay').classList.remove('show');
+                document.getElementById('successMessage').classList.remove('show');
+            }, 2000);
+        }
+        
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Get form values
+            const agentName = document.getElementById('agentName').value || '_____________________';
+            const phoneNumber = document.getElementById('phoneNumber').value || '_____________________';
+            const reportDate = document.getElementById('reportDate').value || '____ / ____ / ______';
+            const areaLocation = document.getElementById('areaLocation').value || '_____________________';
+            const hoursWorked = document.getElementById('hoursWorked').value || '______';
+            const businessesVisited = document.getElementById('businessesVisited').value || '______';
+            const newContacts = document.getElementById('newContacts').value || '______';
+            const onboardedBusinesses = document.getElementById('onboardedBusinesses').value || '______';
+            const commonQuestions = document.getElementById('commonQuestions').value || '_____________________';
+            const mainReasons = document.getElementById('mainReasons').value || '_____________________';
+            const opportunities = document.getElementById('opportunities').value || '_____________________';
+            const challenges = document.getElementById('challenges').value || '_____________________';
+            const supportNeeded = document.getElementById('supportNeeded').value || '_____________________';
+            
+            // Get rating
+            const ratingInputs = document.querySelectorAll('input[name="rating"]');
+            let rating = '___';
+            for (const input of ratingInputs) {
+                if (input.checked) {
+                    rating = input.value;
+                    break;
+                }
+            }
+            
+            const proud = document.getElementById('proud').value || '_____________________';
+            const differently = document.getElementById('differently').value || '_____________________';
+            
+            // PDF styling
+            let y = 20;
+            
+            // Title
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('CRAFTORY AGENT DAILY REPORT', 105, y, { align: 'center' });
+            y += 15;
+            
+            // Section 1
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('1. Agent Details', 15, y);
+            y += 8;
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Agent Name: ${agentName}`, 15, y);
+            y += 7;
+            doc.text(`Phone Number: ${phoneNumber}`, 15, y);
+            y += 7;
+            doc.text(`Date: ${reportDate}`, 15, y);
+            y += 7;
+            doc.text(`Area / Location: ${areaLocation}`, 15, y);
+            y += 12;
+            
+            // Section 2
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text("2. Today's Activity", 15, y);
+            y += 8;
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Hours Worked: ${hoursWorked} hours`, 15, y);
+            y += 7;
+            doc.text(`Businesses Visited: ${businessesVisited}`, 15, y);
+            y += 12;
+            
+            // Section 3
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('3. Results', 15, y);
+            y += 8;
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`New Contacts: ${newContacts}`, 15, y);
+            y += 7;
+            doc.text(`Onboarded Businesses: ${onboardedBusinesses}`, 15, y);
+            y += 7;
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'italic');
+            doc.text('(Onboarded = businesses that agreed to join Craftory)', 15, y);
+            y += 12;
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            
+            // Section 4
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('4. Feedback from the Ground', 15, y);
+            y += 8;
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('Common questions/concerns:', 15, y);
+            y += 6;
+            const questionsLines = doc.splitTextToSize(commonQuestions, 180);
+            doc.text(questionsLines, 15, y);
+            y += (questionsLines.length * 5) + 5;
+            
+            doc.text('Reasons for "No":', 15, y);
+            y += 6;
+            const reasonsLines = doc.splitTextToSize(mainReasons, 180);
+            doc.text(reasonsLines, 15, y);
+            y += (reasonsLines.length * 5) + 5;
+            
+            if (y > 240) {
+                doc.addPage();
+                y = 20;
+            }
+            
+            doc.text('Opportunities noticed:', 15, y);
+            y += 6;
+            const opportunitiesLines = doc.splitTextToSize(opportunities, 180);
+            doc.text(opportunitiesLines, 15, y);
+            y += (opportunitiesLines.length * 5) + 8;
+            
+            // Section 5
+            if (y > 230) {
+                doc.addPage();
+                y = 20;
+            }
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('5. Challenges Faced Today', 15, y);
+            y += 8;
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const challengesLines = doc.splitTextToSize(challenges, 180);
+            doc.text(challengesLines, 15, y);
+            y += (challengesLines.length * 5) + 8;
+            
+            // Section 6
+            if (y > 230) {
+                doc.addPage();
+                y = 20;
+            }
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('6. Support or Materials Needed', 15, y);
+            y += 8;
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const supportLines = doc.splitTextToSize(supportNeeded, 180);
+            doc.text(supportLines, 15, y);
+            y += (supportLines.length * 5) + 8;
+            
+            // Section 7
+            if (y > 230) {
+                doc.addPage();
+                y = 20;
+            }
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('7. Agent Self-Check', 15, y);
+            y += 8;
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Effort Rating (1-5): ${rating}`, 15, y);
+            y += 8;
+            
+            doc.text("Proud of today:", 15, y);
+            y += 6;
+            const proudLines = doc.splitTextToSize(proud, 180);
+            doc.text(proudLines, 15, y);
+            y += (proudLines.length * 5) + 5;
+            
+            doc.text('Do differently tomorrow:', 15, y);
+            y += 6;
+            const differentlyLines = doc.splitTextToSize(differently, 180);
+            doc.text(differentlyLines, 15, y);
+            
+            // Save the PDF
+            const fileName = `Craftory_Report_${agentName.replace(/\s+/g, '_')}_${reportDate}.pdf`;
+            doc.save(fileName);
+            
+            // Show success message
+            showSuccess();
+        }
+    </script>
+</body>
+</html>
